@@ -1,10 +1,13 @@
 package com.receiver.iptv;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -12,6 +15,7 @@ import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
     private WebView w;
+    private ValueCallback<Uri[]> fcb;
 
     @Override
     @SuppressWarnings("deprecation")
@@ -30,9 +34,39 @@ public class MainActivity extends Activity {
         s.setAllowUniversalAccessFromFileURLs(true);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         w.setWebViewClient(new WebViewClient());
-        w.setWebChromeClient(new WebChromeClient());
+        w.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
+                if (fcb != null) fcb.onReceiveValue(null);
+                fcb = cb;
+                try {
+                    startActivityForResult(p.createIntent(), 1);
+                } catch (Exception e) {
+                    fcb = null;
+                    cb.onReceiveValue(null);
+                    w.evaluateJavascript("window.wToast&&wToast('لا يوجد مدير ملفات على الجهاز')", null);
+                }
+                return true;
+            }
+        });
         w.loadUrl("file:///android_asset/index.html");
         w.requestFocus();
+    }
+
+    @Override
+    protected void onActivityResult(int rq, int rs, Intent d) {
+        if (rq == 1 && fcb != null) {
+            fcb.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(rs, d));
+            fcb = null;
+        } else super.onActivityResult(rq, rs, d);
+    }
+
+    @Override
+    public void onBackPressed() {
+        w.evaluateJavascript("window.onBack?window.onBack():false", new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String r) { if (!"true".equals(r)) finish(); }
+        });
     }
 
     @Override
