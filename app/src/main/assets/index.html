@@ -45,6 +45,57 @@ video{position:fixed;inset:0;width:100%;height:100%;background:#000;object-fit:c
 #sInf{color:var(--mu);line-height:1.9;font-size:1rem;margin-top:6px}
 #sInf a{direction:ltr;unicode-bidi:embed;color:#fff}
 #toast{z-index:20;position:fixed;top:45%;left:50%;transform:translateX(-50%);background:#000c;border:2px solid var(--ac);padding:16px 30px;border-radius:12px;font-size:1.5rem;text-align:center}
+
+:root{--row-height:68px;--list-columns:2;--panel-space:3.5%}
+#info{left:var(--panel-space);right:auto;bottom:3%;width:39%;min-height:112px;padding:14px 18px;gap:14px}
+#iNum{min-width:82px;font-size:2.7rem}
+#iLogo{width:62px;height:62px}
+#iName{font-size:1.6rem}
+#clock{font-size:1.35rem}
+#list{top:4%;bottom:4%;right:var(--panel-space);width:53%;max-width:none;border-radius:12px}
+.ph{min-height:62px;align-items:center;padding:10px 18px;font-size:1.4rem}
+#rows{display:grid;grid-template-columns:repeat(var(--list-columns),minmax(0,1fr));grid-auto-rows:var(--row-height);align-content:start;gap:8px;overflow:hidden;padding:10px}
+.row{height:var(--row-height);min-width:0;gap:10px;padding:0 12px;font-size:1.18rem;border-radius:8px}
+.row .n{min-width:46px}
+.row img,.row .lg{width:42px;height:42px}
+#set{inset:5% 20%;max-width:920px;margin:auto}
+#jmp{inset:8% 20%;max-width:760px;margin:auto}
+.btn{min-height:50px;padding:10px 14px;font-size:1.12rem}
+.hintS{font-size:.68rem}
+
+@media (orientation: portrait),(max-width:959px){
+  :root{--row-height:48px;--list-columns:1;--panel-space:2%}
+  #info{left:2%;right:2%;bottom:2%;width:auto;min-height:82px;gap:12px;padding:9px 14px}
+  #iNum{min-width:72px;font-size:2.2rem}
+  #iLogo{width:52px;height:52px}
+  #iName{font-size:1.35rem}
+  #clock{font-size:1.15rem}
+  #list{top:2%;bottom:2%;right:2%;width:70%;max-width:none}
+  .ph{min-height:48px;font-size:1.05rem;padding:8px 12px}
+  .ph small{font-size:.78rem}
+  .row{gap:8px;padding:0 9px;font-size:.98rem}
+  .row .n{min-width:38px}
+  .row img,.row .lg{width:32px;height:32px}
+  #set{inset:4% 8%}
+  #jmp{inset:7% 12%}
+  #sInf{font-size:.9rem}
+  .btn{min-height:44px;padding:9px 12px;font-size:.98rem}
+}
+@media (min-width:1800px) and (orientation: landscape){
+  :root{--row-height:78px;--panel-space:3%}
+  .ph{min-height:72px;font-size:1.5rem}
+  .row{font-size:1.3rem}
+  .row img,.row .lg{width:50px;height:50px}
+  .row .n{min-width:56px}
+  #info{min-height:124px}
+  #iNum{font-size:3rem;min-width:92px}
+  #iLogo{width:72px;height:72px}
+  #iName{font-size:1.85rem}
+  #clock{font-size:1.55rem}
+  .btn{min-height:56px;font-size:1.25rem}
+}
+html.native-playback,html.native-playback body{background:transparent}
+html.native-playback video{visibility:hidden}
 </style>
 </head>
 <body>
@@ -7428,17 +7479,44 @@ function applyGroup(){
   view=ch.map(function(c,i){return{c:c,i:i}}).filter(function(o){return gi===0||o.c.group===g});
   $('lGrp').textContent='كل القنوات ('+view.length+')';
 }
+var nativeFailed=false;
+function startFallback(){
+  if(hls){hls.destroy();hls=null}
+  document.documentElement.classList.remove('native-playback');
+  if(window.Hls&&Hls.isSupported()&&/\.m3u8|hls/i.test(ch[cur].url)){
+    hls=new Hls();hls.loadSource(ch[cur].url);hls.attachMedia(v);
+    hls.on(Hls.Events.ERROR,function(e,d){if(d.fatal)fail()});
+  }else v.src=ch[cur].url;
+  v.play().catch(function(){});
+  tm('stall',fail,15000);
+}
 function start(){
   var c=ch[cur];if(!c)return;
   $('blk').classList.remove('hide');
   if(hls){hls.destroy();hls=null}
-  if(window.Hls&&Hls.isSupported()&&/\.m3u8|hls/i.test(c.url)){
-    hls=new Hls();hls.loadSource(c.url);hls.attachMedia(v);
-    hls.on(Hls.Events.ERROR,function(e,d){if(d.fatal)fail()});
-  }else v.src=c.url;
-  v.play().catch(function(){});
-  tm('stall',fail,15000);
+  if(!nativeFailed&&window.Android&&Android.playNative){
+    v.pause();v.removeAttribute('src');v.load();
+    if(Android.playNative(c.url)){
+      tm('stall',function(){
+        nativeFailed=true;
+        Android.stopNative();
+        startFallback();
+      },15000);
+      return;
+    }
+  }
+  startFallback();
 }
+window.onNativePlaybackStarted=function(){
+  clearTimeout(T.stall);rt=0;
+  document.documentElement.classList.add('native-playback');
+  $('blk').classList.add('hide');
+};
+window.onNativePlaybackError=function(){
+  nativeFailed=true;
+  document.documentElement.classList.remove('native-playback');
+  startFallback();
+};
 function fail(){
   clearTimeout(T.stall);
   if(rt<2){rt++;tm('rt',start,1200);return}
@@ -7446,7 +7524,7 @@ function fail(){
 }
 function play(i){
   if(!ch.length)return;
-  cur=(i+ch.length)%ch.length;rt=0;
+  cur=(i+ch.length)%ch.length;rt=0;nativeFailed=false;
   store('lasturl',ch[cur].url);start();showInfo();
 }
 v.addEventListener('playing',function(){clearTimeout(T.stall);rt=0;$('blk').classList.add('hide')});
@@ -7459,11 +7537,20 @@ function showInfo(){
 }
 setInterval(function(){var d=new Date();$('clock').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)},1000);
 
-/* list: يحسب عدد الأسطر من ارتفاع اللوحة الفعلي فتظهر القناة الأخيرة دائماً */
+function listMetrics(){
+  var R=$('rows'),
+      rh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'))||52,
+      columns=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--list-columns'),10)||1,
+      rows=Math.max(1,Math.floor((R.clientHeight-20)/rh));
+  return{columns:columns,rows:rows,visible:rows*columns};
+}
+
+/* يحسب بداية شبكة القنوات من مساحة اللوحة ليبقى الاختيار ظاهراً */
 function drawList(){
-  var R=$('rows'),vis=Math.max(3,Math.floor((R.clientHeight-12)/52)),
-      st=Math.max(0,Math.min(sel-Math.floor(vis/2),view.length-vis)),h='';
-  for(var k=st;k<Math.min(view.length,st+vis);k++){
+  var R=$('rows'),M=listMetrics(),
+      firstRow=Math.max(0,Math.min(Math.floor(sel/M.columns)-Math.floor(M.rows/2),Math.ceil(view.length/M.columns)-M.rows)),
+      st=firstRow*M.columns,h='';
+  for(var k=st;k<Math.min(view.length,st+M.visible);k++){
     var o=view[k];
     h+='<div class="row'+(k===sel?' sel':'')+'"><span class="n">'+(o.i+1)+'</span>'+
        (o.c.logo?'<img src="'+esc(o.c.logo)+'" onerror="this.style.visibility=\'hidden\'">':'<span class="lg"></span>')+
@@ -7510,7 +7597,7 @@ function keep(){
   var i=ch.findIndex(function(c){return c.url===u});
   if(i>=0)cur=i;
   else if(ch.length)play(0);
-  else{if(hls){hls.destroy();hls=null}v.pause();$('blk').classList.remove('hide')}
+  else{if(hls){hls.destroy();hls=null}if(window.Android&&Android.stopNative)Android.stopNative();document.documentElement.classList.remove('native-playback');v.pause();$('blk').classList.remove('hide')}
 }
 function done(m,i){saveSrcs();keep();sm=m;si=Math.max(0,i);conf=false;drawSet()}
 function openUrl(u){try{if(window.Android&&Android.openUrl)Android.openUrl(u);else window.open(u,'_blank')}catch(e){toast('تعذر فتح الرابط')}}
@@ -7636,6 +7723,14 @@ window.onBack=function(){if(mode==='set'){back();return true}if(mode!=='play'){c
 
 document.addEventListener('keydown',function(e){
   var k=e.key;
+  if(window.Android&&Android.isNativePlayback&&Android.isNativePlayback()){
+    if(k==='MediaPlayPause')Android.toggleNativePlayback();
+    else if(k==='MediaFastForward')Android.seekNative(15000);
+    else if(k==='MediaRewind')Android.seekNative(-15000);
+    else if(k==='ContextMenu'||k==='z'||k==='Z')Android.toggleNativeZoom();
+    else k='';
+    if(k){e.preventDefault();return}
+  }
   if(mode==='set'){
     var stp2=e.repeat?(++hc<6?1:hc<16?5:20):(hc=0,1);
     if(sm==='move'&&(k==='ArrowUp'||k==='ArrowDown')){
@@ -7660,12 +7755,12 @@ document.addEventListener('keydown',function(e){
   }
   if(mode==='list'){
     tm('l',closeAll,12000);
-    var vis=Math.max(3,Math.floor(($('rows').clientHeight-12)/52));
+    var M=listMetrics();
     var stp=e.repeat?(++hc<6?1:hc<16?5:20):(hc=0,1);
-    if(k==='ArrowDown'){var n2=sel+stp;sel=n2>=view.length?(sel>=view.length-1&&!e.repeat?0:view.length-1):n2}
-    else if(k==='ArrowUp'){var n3=sel-stp;sel=n3<0?(sel<=0&&!e.repeat?view.length-1:0):n3}
-    else if(k==='ArrowLeft')sel=Math.min(view.length-1,sel+vis);
-    else if(k==='ArrowRight')sel=Math.max(0,sel-vis);
+    if(k==='ArrowDown'){var n2=sel+stp*M.columns;sel=n2>=view.length?(sel>=view.length-1&&!e.repeat?0:view.length-1):n2}
+    else if(k==='ArrowUp'){var n3=sel-stp*M.columns;sel=n3<0?(sel<=0&&!e.repeat?view.length-1:0):n3}
+    else if(k==='ArrowLeft')sel=Math.min(view.length-1,sel+(M.columns>1?stp:M.visible));
+    else if(k==='ArrowRight')sel=Math.max(0,sel-(M.columns>1?stp:M.visible));
     else if(k==='Enter'){if(view[sel])play(view[sel].i);closeAll();e.preventDefault();return}
     else if(k==='Escape'||k==='Backspace'||k==='GoBack'){closeAll()}
     drawList();e.preventDefault();return;
