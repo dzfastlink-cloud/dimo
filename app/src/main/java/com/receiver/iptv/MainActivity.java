@@ -49,8 +49,25 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
+        w.addJavascriptInterface(new Bridge(), "Android");
         w.loadUrl("file:///android_asset/index.html");
         w.requestFocus();
+    }
+
+    private class Bridge {
+        @android.webkit.JavascriptInterface
+        public void openUrl(String u) {
+            if (u == null || !(u.startsWith("http://") || u.startsWith("https://"))) return;
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(u)));
+            } catch (Exception e) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        w.evaluateJavascript("window.wToast&&wToast('لا يوجد متصفح على الجهاز')", null);
+                    }
+                });
+            }
+        }
     }
 
     @Override
