@@ -1,30 +1,72 @@
 package com.receiver.iptv;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.view.Gravity;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 
+import androidx.media3.common.AudioAttributes;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.common.VideoSize;
+import androidx.media3.datasource.DefaultHttpDataSource;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+
+@SuppressWarnings({"deprecation", "UnsafeOptInUsageError"})
 public class MainActivity extends Activity {
+    private FrameLayout root;
+    private SurfaceView sv;
     private WebView w;
+    private ExoPlayer player;
     private ValueCallback<Uri[]> fcb;
+    private String aspect = "contain";
+    private int vw = 0, vh = 0;
+    private float par = 1f;
 
     @Override
-    @SuppressWarnings("deprecation")
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        root = new FrameLayout(this);
+        root.setBackgroundColor(Color.BLACK);
+        sv = new SurfaceView(this);
+        root.addView(sv, new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER));
         w = new WebView(this);
-        w.setBackgroundColor(Color.BLACK);
-        setContentView(w);
+        w.setBackgroundColor(Color.TRANSPARENT);
+        root.addView(w, new FrameLayout.LayoutParams(-1, -1));
+        setContentView(root);
+        root.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int l, int t, int r, int bt, int ol, int ot, int or, int ob) {
+                layoutVideo();
+            }
+        });
+
+        initPlayer();
+
         WebSettings s = w.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -44,7 +86,7 @@ public class MainActivity extends Activity {
                 } catch (Exception e) {
                     fcb = null;
                     cb.onReceiveValue(null);
-                    w.evaluateJavascript("window.wToast&&wToast('لا يوجد مدير ملفات على الجهاز')", null);
+                    js("window.wToast&&wToast('لا يوجد مدير ملفات على الجهاز')");
                 }
                 return true;
             }
@@ -54,25 +96,125 @@ public class MainActivity extends Activity {
         w.requestFocus();
     }
 
+    private void initPlayer() {
+        DefaultHttpDataSource.Factory dsf = new DefaultHttpDataSource.Factory()
+                .setAllowCrossProtocolRedirects(true)
+                .setConnectTimeoutMs(10000)
+                .setReadTimeoutMs(15000)
+                .setUserAgent("Mozilla/5.0 (Linux; Android) WasslaTV");
+        player = new ExoPlayer.Builder(this)
+                .setMediaSourceFactory(new DefaultMediaSourceFactory(dsf))
+                .build();
+        player.setAudioAttributes(new AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                .build(), true);
+        player.setVideoSurfaceView(sv);
+        player.addListener(new Player.Listener() {
+            @Override
+            public void onIsPlayingChanged(boolean playing) {
+                if (playing) notifyJs("playing");
+            }
+
+            @Override
+            public void onPlaybackStateChanged(int state) {
+                if (state == Player.STATE_READY && player.getPlayWhenReady()) notifyJs("playing");
+            }
+
+            @Override
+            public void onPlayerError(PlaybackException e) {
+                notifyJs("error");
+            }
+
+            @Override
+            public void onVideoSizeChanged(VideoSize v) {
+                vw = v.width;
+                vh = v.height;
+                par = v.pixelWidthHeightRatio > 0 ? v.pixelWidthHeightRatio : 1f;
+                layoutVideo();
+            }
+        });
+    }
+
+    private void js(String code) {
+        if (w != null) w.evaluateJavascript(code, null);
+    }
+
+    private void notifyJs(String ev) {
+        js("window.onPlayer&&onPlayer('" + ev + "')");
+    }
+
+    private void layoutVideo() {
+        int cw = root.getWidth(), chh = root.getHeight();
+        if (vw <= 0 || vh <= 0 || cw <= 0 || chh <= 0) return;
+        float va = vw * par / vh, ca = (float) cw / chh;
+        int w2, h2;
+        if ("fill".equals(aspect)) {
+            w2 = cw;
+            h2 = chh;
+        } else if ("cover".equals(aspect)) {
+            if (va > ca) { h2 = chh; w2 = (int) (chh * va); } else { w2 = cw; h2 = (int) (cw / va); }
+        } else {
+            if (va > ca) { w2 = cw; h2 = (int) (cw / va); } else { h2 = chh; w2 = (int) (chh * va); }
+        }
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(w2, h2, Gravity.CENTER);
+        sv.setLayoutParams(lp);
+    }
+
     private class Bridge {
-        @android.webkit.JavascriptInterface
+        @JavascriptInterface
+        public void play(final String url) {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    try {
+                        player.setMediaItem(MediaItem.fromUri(url));
+                        player.prepare();
+                        player.setPlayWhenReady(true);
+                    } catch (Exception e) {
+                        notifyJs("error");
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void stop() {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    player.stop();
+                    player.clearMediaItems();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void setAspect(final String m) {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    aspect = m;
+                    layoutVideo();
+                }
+            });
+        }
+
+        @JavascriptInterface
         public String saveText(String name, String text) {
             try {
                 byte[] data = text.getBytes("UTF-8");
-                if (android.os.Build.VERSION.SDK_INT >= 29) {
-                    android.content.ContentValues cv = new android.content.ContentValues();
-                    cv.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name);
-                    cv.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/json");
-                    cv.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Download");
-                    Uri u = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
+                if (Build.VERSION.SDK_INT >= 29) {
+                    ContentValues cv = new ContentValues();
+                    cv.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                    cv.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                    cv.put(MediaStore.MediaColumns.RELATIVE_PATH, "Download");
+                    Uri u = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
                     if (u == null) return "";
-                    java.io.OutputStream os = getContentResolver().openOutputStream(u);
+                    OutputStream os = getContentResolver().openOutputStream(u);
                     os.write(data);
                     os.close();
                     return "Download/" + name;
                 } else {
-                    java.io.File f = new java.io.File(getExternalFilesDir(null), name);
-                    java.io.FileOutputStream os = new java.io.FileOutputStream(f);
+                    File f = new File(getExternalFilesDir(null), name);
+                    FileOutputStream os = new FileOutputStream(f);
                     os.write(data);
                     os.close();
                     return f.getAbsolutePath();
@@ -82,7 +224,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        @android.webkit.JavascriptInterface
+        @JavascriptInterface
         public void openUrl(String u) {
             if (u == null || !(u.startsWith("http://") || u.startsWith("https://"))) return;
             try {
@@ -90,7 +232,7 @@ public class MainActivity extends Activity {
             } catch (Exception e) {
                 runOnUiThread(new Runnable() {
                     public void run() {
-                        w.evaluateJavascript("window.wToast&&wToast('لا يوجد متصفح على الجهاز')", null);
+                        js("window.wToast&&wToast('لا يوجد متصفح على الجهاز')");
                     }
                 });
             }
@@ -109,8 +251,22 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         w.evaluateJavascript("window.onBack?window.onBack():false", new ValueCallback<String>() {
             @Override
-            public void onReceiveValue(String r) { if (!"true".equals(r)) finish(); }
+            public void onReceiveValue(String r) {
+                if (!"true".equals(r)) finish();
+            }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (player != null) player.play();
+    }
+
+    @Override
+    protected void onStop() {
+        if (player != null) player.pause();
+        super.onStop();
     }
 
     @Override
@@ -122,5 +278,9 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() { if (w != null) w.destroy(); super.onDestroy(); }
+    protected void onDestroy() {
+        if (player != null) { player.release(); player = null; }
+        if (w != null) w.destroy();
+        super.onDestroy();
+    }
 }

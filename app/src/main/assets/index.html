@@ -7401,7 +7401,7 @@ http://live.lynxiptv.xyz/live/781150196435/PikzMHqmTS/254770.m3u8
 
 (function(){
 var $=function(i){return document.getElementById(i)};
-var v=$('v'),hls=null,ch=[],groups=[],gi=0,view=[],cur=0,sel=0,mode='play',si=0,rc=0,rt=0,lk='',hc=0,ji=0,sk=0,cat=0,P={ar:'contain',infoMs:5000,clock:true,logo:true,maxRt:2,resume:true,autoNext:false},T={};
+var v=$('v'),hls=null,ch=[],groups=[],gi=0,view=[],cur=0,sel=0,mode='play',si=0,rc=0,rt=0,lk='',hc=0,ji=0,sk=0,cat=0,P={engine:'exo',ar:'contain',infoMs:5000,clock:true,logo:true,maxRt:2,resume:true,autoNext:false},T={};
 function tm(k,f,ms){clearTimeout(T[k]);T[k]=setTimeout(f,ms)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function toast(t){var e=$('toast');e.textContent=t;e.classList.remove('hide');tm('t',function(){e.classList.add('hide')},2500)}
@@ -7433,10 +7433,13 @@ function applyGroup(){
   view=ch.map(function(c,i){return{c:c,i:i}}).filter(function(o){return gi===0||o.c.group===g});
   $('lGrp').textContent='كل القنوات ('+view.length+')';
 }
+function useExo(){return P.engine==='exo'&&!!window.Android&&!!Android.play}
 function start(){
   var c=ch[cur];if(!c)return;
   $('blk').classList.remove('hide');
   if(hls){hls.destroy();hls=null}
+  if(useExo()){try{v.pause()}catch(e){}Android.play(c.url);tm('stall',fail,20000);return}
+  if(window.Android&&Android.stop)Android.stop();
   if(window.Hls&&Hls.isSupported()&&/\.m3u8|hls/i.test(c.url)){
     hls=new Hls();hls.loadSource(c.url);hls.attachMedia(v);
     hls.on(Hls.Events.ERROR,function(e,d){if(d.fatal)fail()});
@@ -7455,7 +7458,9 @@ function play(i){
   cur=(i+ch.length)%ch.length;rt=0;
   store('lasturl',ch[cur].url);start();showInfo();
 }
-v.addEventListener('playing',function(){clearTimeout(T.stall);rt=0;sk=0;$('blk').classList.add('hide')});
+function onPlay(){clearTimeout(T.stall);rt=0;sk=0;$('blk').classList.add('hide')}
+v.addEventListener('playing',onPlay);
+window.onPlayer=function(ev){if(ev==='playing')onPlay();else if(ev==='error')fail()};
 v.addEventListener('error',function(){fail()});
 function showInfo(){
   var c=ch[cur];if(!c)return;
@@ -7485,10 +7490,16 @@ function openList(){
 function closeAll(){mode='play';$('list').classList.add('hide');$('set').classList.add('hide');$('jmp').classList.add('hide')}
 
 /* الإعدادات: صفحة متكاملة بأقسام */
-var srcs=[],sm='main',cf=0,cc=0,gc=0,conf=false,wk=null,VER='1.4';
+var srcs=[],sm='main',cf=0,cc=0,gc=0,conf=false,wk=null,VER='1.5';
 var CATS=['المصادر','القنوات','العرض','التشغيل','نسخ احتياطي','حول'];
 function savePrefs(){store('prefs',JSON.stringify(P))}
-function applyPrefs(){v.style.objectFit=P.ar;$('clock').style.display=P.clock?'':'none';$('iLogo').style.display=P.logo?'':'none'}
+function applyPrefs(){
+  var n=useExo();
+  v.style.objectFit=P.ar;v.style.display=n?'none':'';
+  document.documentElement.style.background=n?'transparent':'#000';document.body.style.background=n?'transparent':'#000';
+  $('clock').style.display=P.clock?'':'none';$('iLogo').style.display=P.logo?'':'none';
+  if(window.Android&&Android.setAspect)Android.setAspect(P.ar);
+}
 function loadPrefs(){try{var o=JSON.parse(store('prefs')||'{}');for(var k in o)if(k in P)P[k]=o[k]}catch(e){}applyPrefs()}
 function saveSrcs(){store('srcs',JSON.stringify(srcs.map(function(s){return{id:s.id,name:s.name,enabled:s.enabled,text:s.text,hid:s.hid||[],del:s.del||[],ord:s.ord||[]}})))}
 function loadSrcs(){
@@ -7520,7 +7531,7 @@ function keep(){
   var i=ch.findIndex(function(c){return c.url===u});
   if(i>=0)cur=i;
   else if(ch.length)play(0);
-  else{if(hls){hls.destroy();hls=null}v.pause();$('blk').classList.remove('hide')}
+  else{if(hls){hls.destroy();hls=null}v.pause();if(window.Android&&Android.stop)Android.stop();$('blk').classList.remove('hide')}
 }
 function done(m,i){saveSrcs();keep();sm=m;si=Math.max(0,i);conf=false;drawSet()}
 function openUrl(u){try{if(window.Android&&Android.openUrl)Android.openUrl(u);else window.open(u,'_blank')}catch(e){toast('تعذر فتح الرابط')}}
@@ -7575,6 +7586,7 @@ function catItems(){
     return{title:'العرض',list:it};
   }
   if(cat===3){
+    if(window.Android&&Android.play)it.push({t:'المشغّل: '+(P.engine==='exo'?'ExoPlayer (أصلي)':'WebView'),f:function(){P.engine=P.engine==='exo'?'web':'exo';savePrefs();applyPrefs();rt=0;start();drawSet()}});
     it.push(opt('محاولات إعادة التشغيل','maxRt',[0,2,4],['بدون','مرتان','4 مرات']));
     it.push(opt('البدء على آخر قناة','resume',[true,false],['نعم','لا']));
     it.push(opt('الانتقال التلقائي عند التعطل','autoNext',[false,true],['لا','نعم']));
