@@ -56,6 +56,33 @@ public class MainActivity extends Activity {
 
     private class Bridge {
         @android.webkit.JavascriptInterface
+        public String saveText(String name, String text) {
+            try {
+                byte[] data = text.getBytes("UTF-8");
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    android.content.ContentValues cv = new android.content.ContentValues();
+                    cv.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name);
+                    cv.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                    cv.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Download");
+                    Uri u = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
+                    if (u == null) return "";
+                    java.io.OutputStream os = getContentResolver().openOutputStream(u);
+                    os.write(data);
+                    os.close();
+                    return "Download/" + name;
+                } else {
+                    java.io.File f = new java.io.File(getExternalFilesDir(null), name);
+                    java.io.FileOutputStream os = new java.io.FileOutputStream(f);
+                    os.write(data);
+                    os.close();
+                    return f.getAbsolutePath();
+                }
+            } catch (Exception e) {
+                return "";
+            }
+        }
+
+        @android.webkit.JavascriptInterface
         public void openUrl(String u) {
             if (u == null || !(u.startsWith("http://") || u.startsWith("https://"))) return;
             try {

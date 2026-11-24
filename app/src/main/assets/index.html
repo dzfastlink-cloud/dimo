@@ -33,7 +33,12 @@ video{position:fixed;inset:0;width:100%;height:100%;background:#000;object-fit:c
 .row .t{overflow:hidden;text-overflow:ellipsis;flex:1}
 .row.sel{background:var(--ac);color:#000}
 .row.sel .n{color:#000}
-#set{inset:7% 16%}
+#set{inset:4% 6%;display:flex;flex-direction:column}
+#sTabs{display:flex;gap:8px;padding:10px 14px 0}
+.cat{flex:1;text-align:center;padding:10px 6px;border-radius:10px;background:#0b2a5c;font-size:1.05rem;white-space:nowrap}
+.cat.on{background:var(--ac);color:#000;font-weight:700}
+#sMain{flex:1;min-height:0;padding:14px;display:flex;flex-direction:column;gap:8px}
+.pf{padding:8px 18px;color:var(--mu);font-size:.85rem;border-top:1px solid #4f7fc955}
 #jmp{inset:9% 18%}
 #jmp .body{padding:22px}
 #jBody{display:flex;flex-direction:column;gap:10px}
@@ -52,9 +57,9 @@ video{position:fixed;inset:0;width:100%;height:100%;background:#000;object-fit:c
 <div id="blk"><img src="data:image/png;base64,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" alt=""><b>وصلة TV</b><small>dimo</small></div>
 <div id="info" class="hide"><div id="iNum"></div><img id="iLogo" alt=""><div class="meta"><div id="iName"></div><div id="iGrp"></div></div><div style="text-align:center"><div id="clock"></div><div class="hintS">► ×5 المصادر · ◄ ×5 الإعدادات</div></div></div>
 <div id="list" class="panel hide"><div class="ph"><span id="lGrp"></span><small>◄ ► صفحة · OK تشغيل</small></div><div id="rows"></div></div>
-<div id="set" class="panel hide"><div class="ph"><span id="sT"></span><small>OK اختيار · BACK رجوع</small></div><div class="body"><div id="sBody"></div><div id="sInf"></div></div></div>
+<div id="set" class="panel hide"><div class="ph"><span id="sT"></span><small>وصلة TV · dimo</small></div><div id="sTabs"></div><div id="sMain"><div id="sBody"></div><div id="sInf"></div></div><div class="pf" id="sFoot"></div></div>
 <div id="jmp" class="panel hide"><div class="ph"><span>المصادر</span><small>OK فتح القائمة من بداية المصدر</small></div><div class="body"><div id="jBody"></div></div></div>
-<input type="file" id="file" class="hide">
+<input type="file" id="file" class="hide"><input type="file" id="file2" class="hide">
 <div id="toast" class="hide"></div>
 
 <script>
@@ -7396,7 +7401,7 @@ http://live.lynxiptv.xyz/live/781150196435/PikzMHqmTS/254770.m3u8
 
 (function(){
 var $=function(i){return document.getElementById(i)};
-var v=$('v'),hls=null,ch=[],groups=[],gi=0,view=[],cur=0,sel=0,mode='play',si=0,rc=0,rt=0,lk='',hc=0,ji=0,T={};
+var v=$('v'),hls=null,ch=[],groups=[],gi=0,view=[],cur=0,sel=0,mode='play',si=0,rc=0,rt=0,lk='',hc=0,ji=0,sk=0,cat=0,P={ar:'contain',infoMs:5000,clock:true,logo:true,maxRt:2,resume:true,autoNext:false},T={};
 function tm(k,f,ms){clearTimeout(T[k]);T[k]=setTimeout(f,ms)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function toast(t){var e=$('toast');e.textContent=t;e.classList.remove('hide');tm('t',function(){e.classList.add('hide')},2500)}
@@ -7441,7 +7446,8 @@ function start(){
 }
 function fail(){
   clearTimeout(T.stall);
-  if(rt<2){rt++;tm('rt',start,1200);return}
+  if(rt<P.maxRt){rt++;tm('rt',start,1200);return}
+  if(P.autoNext&&sk<5){sk++;toast('القناة لا تعمل — الانتقال للتالية');tm('rt',function(){play(cur+1)},900);return}
   toast('القناة لا تعمل — ▲ للقناة التالية');
 }
 function play(i){
@@ -7449,13 +7455,13 @@ function play(i){
   cur=(i+ch.length)%ch.length;rt=0;
   store('lasturl',ch[cur].url);start();showInfo();
 }
-v.addEventListener('playing',function(){clearTimeout(T.stall);rt=0;$('blk').classList.add('hide')});
+v.addEventListener('playing',function(){clearTimeout(T.stall);rt=0;sk=0;$('blk').classList.add('hide')});
 v.addEventListener('error',function(){fail()});
 function showInfo(){
   var c=ch[cur];if(!c)return;
   $('iNum').textContent=cur+1;$('iName').textContent=c.name;$('iGrp').textContent=c.group;
   var l=$('iLogo');if(c.logo){l.src=c.logo;l.style.visibility='visible'}else l.style.visibility='hidden';
-  $('info').classList.remove('hide');tm('i',function(){$('info').classList.add('hide')},4000);
+  $('info').classList.remove('hide');if(P.infoMs>0)tm('i',function(){$('info').classList.add('hide')},P.infoMs);else clearTimeout(T.i);
 }
 setInterval(function(){var d=new Date();$('clock').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)},1000);
 
@@ -7478,8 +7484,12 @@ function openList(){
 }
 function closeAll(){mode='play';$('list').classList.add('hide');$('set').classList.add('hide');$('jmp').classList.add('hide')}
 
-/* settings: مصادر متعددة + تعديل القنوات */
-var srcs=[],sm='main',cf=0,cc=0,gc=0,conf=false,wk=null;
+/* الإعدادات: صفحة متكاملة بأقسام */
+var srcs=[],sm='main',cf=0,cc=0,gc=0,conf=false,wk=null,VER='1.4';
+var CATS=['المصادر','القنوات','العرض','التشغيل','نسخ احتياطي','حول'];
+function savePrefs(){store('prefs',JSON.stringify(P))}
+function applyPrefs(){v.style.objectFit=P.ar;$('clock').style.display=P.clock?'':'none';$('iLogo').style.display=P.logo?'':'none'}
+function loadPrefs(){try{var o=JSON.parse(store('prefs')||'{}');for(var k in o)if(k in P)P[k]=o[k]}catch(e){}applyPrefs()}
 function saveSrcs(){store('srcs',JSON.stringify(srcs.map(function(s){return{id:s.id,name:s.name,enabled:s.enabled,text:s.text,hid:s.hid||[],del:s.del||[],ord:s.ord||[]}})))}
 function loadSrcs(){
   try{srcs=JSON.parse(store('srcs')||'null')}catch(e){srcs=null}
@@ -7521,22 +7531,74 @@ function back(){
   else if(sm==='ch'||sm==='grp'){sm='src';si=0}
   else if(sm==='grpact'){sm='grp';si=gc}
   else if(sm==='src'){sm='main';si=cf}
-  else if(sm==='about'){sm='main';si=items().list.length-2}
+  else if(sm==='hid'){sm='main';si=1}
   else{closeAll();return}
   drawSet();
 }
 function endMove(){var s=srcs[cf];s.ord=wk.map(function(c){return c.url});wk=null;done('ch',cc)}
 function grpList(s){var o=[],ix={};s.all.forEach(function(c){if(!(c.group in ix)){ix[c.group]=o.length;o.push({name:c.group,urls:[]})}o[ix[c.group]].urls.push(c.url)});return o}
 function reorderGroups(s,G,from,to){var o=G.slice(),g=o.splice(from,1)[0];o.splice(to,0,g);s.ord=[].concat.apply([],o.map(function(x){return x.urls}))}
-function items(){
-  var it=[],s=srcs[cf];
-  if(sm==='main'){
+function hiddenList(){var o=[];srcs.forEach(function(s){var h=setOf(s.hid);(s.all||[]).forEach(function(c){if(h[c.url])o.push({s:s,c:c})})});return o}
+function opt(label,key,vals,labs){
+  var i=Math.max(0,vals.indexOf(P[key]));
+  return{t:label+': '+labs[i],f:function(){P[key]=vals[(i+1)%vals.length];savePrefs();applyPrefs();drawSet()}};
+}
+function exportCfg(){
+  var def={};DEF.forEach(function(d){def[d.id]=1});
+  var o={app:'wassla-tv',v:1,prefs:P,srcs:srcs.map(function(s){var r={id:s.id,name:s.name,enabled:s.enabled,hid:s.hid||[],del:s.del||[],ord:s.ord||[]};if(!def[s.id])r.text=s.text;return r})};
+  var txt=JSON.stringify(o),name='wassla-tv-backup.json';
+  try{
+    if(window.Android&&Android.saveText){var p=Android.saveText(name,txt);toast(p?'تم الحفظ: '+p:'تعذر الحفظ');return}
+    var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(txt);a.download=name;a.click();toast('تم التصدير');
+  }catch(e){toast('تعذر التصدير')}
+}
+function catItems(){
+  var it=[];
+  if(cat===0){
     srcs.forEach(function(x,i){it.push({t:(i+1)+'. '+(x.enabled?'✔ ':'⛔ ')+x.name+' · '+x.n+' قناة',f:function(){cf=i;sm='src';si=0;conf=false;drawSet()}})});
     it.push({t:'➕ إضافة مصدر (ملف M3U / TXT)',f:function(){$('file').click()}});
     if(DEF.some(function(d){return!srcs.some(function(x){return x.id===d.id})}))it.push({t:'↺ استرجاع المصادر الافتراضية',f:function(){DEF.forEach(function(d){if(!srcs.some(function(x){return x.id===d.id}))srcs.push({id:d.id,name:d.name,enabled:true,text:d.text})});saveSrcs();keep();drawSet()}});
-    it.push({t:'ℹ حول التطبيق',f:function(){sm='about';si=0;drawSet()}});
-    it.push({t:'✖ إغلاق',f:closeAll});
-    return{title:'الإعدادات',list:it};
+    return{title:'المصادر',list:it};
+  }
+  if(cat===1){
+    var H=hiddenList();
+    it.push({t:'القنوات الظاهرة الآن: '+ch.length,f:function(){}});
+    it.push({t:'👁 القنوات المخفية ('+H.length+')',f:function(){sm='hid';si=0;drawSet()}});
+    it.push({t:conf?'⚠ اضغط OK مرة أخرى للتأكيد':'↺ إلغاء كل تعديلات القنوات',f:function(){if(!conf){conf=true;drawSet();return}srcs.forEach(function(s){s.hid=[];s.del=[];s.ord=[]});done('main',2)}});
+    return{title:'القنوات',list:it};
+  }
+  if(cat===2){
+    it.push(opt('نسبة الصورة','ar',['contain','fill','cover'],['أصلية','ملء الشاشة','قص']));
+    it.push(opt('مدة شريط المعلومات','infoMs',[3000,5000,8000,0],['3 ثوانٍ','5 ثوانٍ','8 ثوانٍ','دائم']));
+    it.push(opt('إظهار الساعة','clock',[true,false],['نعم','لا']));
+    it.push(opt('إظهار شعار القناة','logo',[true,false],['نعم','لا']));
+    return{title:'العرض',list:it};
+  }
+  if(cat===3){
+    it.push(opt('محاولات إعادة التشغيل','maxRt',[0,2,4],['بدون','مرتان','4 مرات']));
+    it.push(opt('البدء على آخر قناة','resume',[true,false],['نعم','لا']));
+    it.push(opt('الانتقال التلقائي عند التعطل','autoNext',[false,true],['لا','نعم']));
+    return{title:'التشغيل',list:it};
+  }
+  if(cat===4){
+    it.push({t:'📤 تصدير الإعدادات إلى ملف',f:exportCfg});
+    it.push({t:'📥 استيراد الإعدادات من ملف',f:function(){$('file2').click()}});
+    return{title:'نسخ احتياطي',list:it};
+  }
+  it.push({t:'وصلة TV · dimo',f:function(){}});
+  it.push({t:'الإصدار '+VER,f:function(){}});
+  it.push({t:'🌐 https://wasslatv.blogspot.com/',f:function(){openUrl('https://wasslatv.blogspot.com/')}});
+  it.push({t:'🌐 https://dzfastlink.blogspot.com/',f:function(){openUrl('https://dzfastlink.blogspot.com/')}});
+  return{title:'حول التطبيق',list:it};
+}
+function items(){
+  var it=[],s=srcs[cf];
+  if(sm==='main')return catItems();
+  if(sm==='hid'){
+    var H=hiddenList();
+    H.forEach(function(o){it.push({t:o.c.name+' · '+o.s.name,f:function(){o.s.hid=(o.s.hid||[]).filter(function(u){return u!==o.c.url});saveSrcs();keep();si=Math.min(si,Math.max(0,H.length-2));drawSet()}})});
+    if(!H.length)it.push({t:'لا توجد قنوات مخفية',f:back});
+    return{title:'القنوات المخفية · OK لإظهار القناة',list:it};
   }
   if(sm==='src'){
     it.push({t:s.enabled?'⛔ إيقاف المصدر':'✔ تفعيل المصدر',f:function(){s.enabled=!s.enabled;done('main',cf)}});
@@ -7576,35 +7638,36 @@ function items(){
     if(!G.length)it.push({t:'لا توجد مجموعات',f:back});
     return{title:s.name+' · المجموعات',list:it};
   }
-  if(sm==='grpact'){
-    var G2=grpList(s),g=G2[gc];if(!g){sm='grp';return items()}
-    var hs2=setOf(s.hid),allh=g.urls.every(function(u){return hs2[u]}),gs=setOf(g.urls),m2=G2.length;
-    it.push({t:allh?'👁 إظهار المجموعة':'🚫 إخفاء المجموعة',f:function(){var h=(s.hid||[]).filter(function(u){return!gs[u]});s.hid=allh?h:h.concat(g.urls);done('grp',gc)}});
-    if(gc>0)it.push({t:'▲ تحريك المجموعة للأعلى',f:function(){reorderGroups(s,G2,gc,gc-1);done('grp',gc-1)}});
-    if(gc<m2-1)it.push({t:'▼ تحريك المجموعة للأسفل',f:function(){reorderGroups(s,G2,gc,gc+1);done('grp',gc+1)}});
-    it.push({t:conf?'⚠ اضغط OK مرة أخرى للتأكيد':'🗑 حذف المجموعة نهائياً',f:function(){
-      if(!conf){conf=true;drawSet();return}
-      var ng=function(u){return!gs[u]};
-      s.del=(s.del||[]).concat(g.urls);s.hid=(s.hid||[]).filter(ng);s.ord=(s.ord||[]).filter(ng);
-      done('grp',Math.min(gc,Math.max(0,m2-2)))}});
-    it.push({t:'↩ رجوع',f:back});
-    return{title:g.name+' · '+g.urls.length+' قناة',list:it};
-  }
-  it.push({t:'وصلة TV · dimo',f:function(){}});
-  it.push({t:'🌐 https://wasslatv.blogspot.com/',f:function(){openUrl('https://wasslatv.blogspot.com/')}});
-  it.push({t:'🌐 https://dzfastlink.blogspot.com/',f:function(){openUrl('https://dzfastlink.blogspot.com/')}});
+  var G2=grpList(s),g=G2[gc];if(!g){sm='grp';return items()}
+  var hs2=setOf(s.hid),allh=g.urls.every(function(u){return hs2[u]}),gs=setOf(g.urls),m2=G2.length;
+  it.push({t:allh?'👁 إظهار المجموعة':'🚫 إخفاء المجموعة',f:function(){var h=(s.hid||[]).filter(function(u){return!gs[u]});s.hid=allh?h:h.concat(g.urls);done('grp',gc)}});
+  if(gc>0)it.push({t:'▲ تحريك المجموعة للأعلى',f:function(){reorderGroups(s,G2,gc,gc-1);done('grp',gc-1)}});
+  if(gc<m2-1)it.push({t:'▼ تحريك المجموعة للأسفل',f:function(){reorderGroups(s,G2,gc,gc+1);done('grp',gc+1)}});
+  it.push({t:conf?'⚠ اضغط OK مرة أخرى للتأكيد':'🗑 حذف المجموعة نهائياً',f:function(){
+    if(!conf){conf=true;drawSet();return}
+    var ng=function(u){return!gs[u]};
+    s.del=(s.del||[]).concat(g.urls);s.hid=(s.hid||[]).filter(ng);s.ord=(s.ord||[]).filter(ng);
+    done('grp',Math.min(gc,Math.max(0,m2-2)))}});
   it.push({t:'↩ رجوع',f:back});
-  return{title:'حول التطبيق',list:it};
+  return{title:g.name+' · '+g.urls.length+' قناة',list:it};
 }
 function drawSet(){
-  var o=items(),L=o.list,vis=7,h='';
+  var o=items(),L=o.list,vis=8,h='';
   si=Math.max(0,Math.min(si,L.length-1));
-  var st=Math.max(0,Math.min(si-3,L.length-vis));
+  var st=Math.max(0,Math.min(si-4,L.length-vis));
   for(var k=st;k<Math.min(L.length,st+vis);k++)h+='<div class="btn'+(k===si?' sel':'')+'">'+esc(L[k].t)+'</div>';
-  $('sT').textContent=o.title;$('sBody').innerHTML=h;
-  $('sInf').innerHTML=sm==='main'?'القنوات المفعّلة: '+ch.length+' · ترتيب المصادر = ترقيم القنوات':sm==='about'?'<div style="font-size:.6rem;opacity:.65;direction:ltr;text-align:center;margin-top:10px">Interface by Atallaoui Dahman</div>':sm==='ch'?'🚫 = مخفية · OK على قناة لإخفائها أو تحريكها أو حذفها':'';
+  $('sTabs').innerHTML=CATS.map(function(n,i){return'<div class="cat'+(i===cat?' on':'')+'">'+n+'</div>'}).join('');
+  $('sT').textContent=sm==='main'?'الإعدادات · '+o.title:o.title;
+  $('sBody').innerHTML=h;
+  var inf='';
+  if(sm==='main'&&cat===0)inf='القنوات المفعّلة: '+ch.length+' · ترتيب المصادر = ترقيم القنوات';
+  else if(sm==='ch')inf='🚫 = مخفية · OK على قناة لإخفائها أو تحريكها أو حذفها';
+  else if(sm==='main'&&cat===4)inf='يُحفظ الملف في مجلد Download (وعلى الأجهزة القديمة في Android/data) · الاستيراد يستبدل مصادرك وتعديلاتك';
+  else if(sm==='main'&&cat===5)inf='<div style="font-size:.6rem;opacity:.65;direction:ltr;text-align:center;margin-top:10px">Interface by Atallaoui Dahman</div>';
+  $('sInf').innerHTML=inf;
+  $('sFoot').textContent=sm==='main'?'▲ ▼ تنقّل · OK اختيار · ◄ ► الأقسام · BACK إغلاق':sm==='move'?'▲ ▼ حرّك القناة · OK تثبيت · BACK إلغاء':'▲ ▼ تنقّل · OK اختيار · BACK رجوع';
 }
-function openSet(){mode='set';sm='main';si=0;conf=false;$('set').classList.remove('hide');drawSet()}
+function openSet(){mode='set';sm='main';cat=0;si=0;conf=false;$('set').classList.remove('hide');drawSet()}
 $('file').onchange=function(e){
   var f=e.target.files[0];e.target.value='';if(!f)return;
   var r=new FileReader();
@@ -7612,7 +7675,27 @@ $('file').onchange=function(e){
     var a=parse(r.result);
     if(!a.length){toast('الملف لا يحتوي على قنوات');return}
     srcs.push({id:Date.now(),name:f.name.replace(/\.[^.]+$/,''),enabled:true,text:r.result});
-    saveSrcs();keep();sm='main';si=srcs.length-1;drawSet();toast('تمت إضافة '+a.length+' قناة');
+    saveSrcs();keep();sm='main';cat=0;si=srcs.length-1;drawSet();toast('تمت إضافة '+a.length+' قناة');
+  };
+  r.onerror=function(){toast('تعذر قراءة الملف')};r.readAsText(f);
+};
+$('file2').onchange=function(e){
+  var f=e.target.files[0];e.target.value='';if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var o=JSON.parse(r.result);
+      if(!o||o.app!=='wassla-tv'||!Array.isArray(o.srcs))throw 0;
+      var dm={};DEF.forEach(function(d){dm[d.id]=d});
+      var ns=[];
+      o.srcs.forEach(function(x){
+        var text=x.text!=null?x.text:(dm[x.id]?dm[x.id].text:null);
+        if(text!=null)ns.push({id:x.id,name:x.name,enabled:x.enabled!==false,text:text,hid:x.hid||[],del:x.del||[],ord:x.ord||[]});
+      });
+      if(!ns.length)throw 0;
+      srcs=ns;if(o.prefs)for(var k in o.prefs)if(k in P)P[k]=o.prefs[k];
+      saveSrcs();savePrefs();applyPrefs();keep();sm='main';si=0;drawSet();toast('تم استيراد الإعدادات');
+    }catch(err){toast('ملف النسخ الاحتياطي غير صالح')}
   };
   r.onerror=function(){toast('تعذر قراءة الملف')};r.readAsText(f);
 };
@@ -7644,6 +7727,13 @@ document.addEventListener('keydown',function(e){
       drawSet();e.preventDefault();return;
     }
     var L=items().list;
+    if(sm==='main'&&(k==='ArrowLeft'||k==='ArrowRight')){
+      if(!e.repeat){cat=(cat+(k==='ArrowLeft'?1:5))%6;si=0;conf=false;drawSet()}
+      e.preventDefault();return;
+    }
+    if((sm==='ch'||sm==='grp'||sm==='hid')&&(k==='ArrowLeft'||k==='ArrowRight')){
+      si=Math.max(0,Math.min(L.length-1,si+(k==='ArrowLeft'?8:-8)));drawSet();e.preventDefault();return;
+    }
     if(k==='ArrowDown'){si=Math.min(L.length-1,si+stp2);conf=false}
     else if(k==='ArrowUp'){si=Math.max(0,si-stp2);conf=false}
     else if(k==='Enter'){if(L[si])L[si].f();e.preventDefault();return}
@@ -7687,9 +7777,9 @@ document.addEventListener('keydown',function(e){
   e.preventDefault();
 });
 
-loadSrcs();rebuild();
+loadPrefs();loadSrcs();rebuild();
 if(!ch.length){openSet();toast('أضف مصدراً أو فعّل مصدراً')}
-else{var lu=store('lasturl'),li=ch.findIndex(function(c){return c.url===lu});play(li<0?0:li)}
+else{var lu=P.resume?store('lasturl'):null,li=ch.findIndex(function(c){return c.url===lu});play(li<0?0:li)}
 })();
 </script>
 </body>
