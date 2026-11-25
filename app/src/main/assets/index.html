@@ -210,7 +210,7 @@ function openList(){
 function closeAll(){clearTimeout(T.l);mode='play';$('list').classList.add('hide');$('set').classList.add('hide');$('jmp').classList.add('hide');if(pSet){pSet=false;if(ch.length){rt=0;start();showInfo()}}}
 
 /* الإعدادات: صفحة متكاملة بأقسام */
-var srcs=[],sm='main',cf=0,cc=0,gc=0,conf=false,wk=null,msel=false,mset={},VER='2.1',svis=8,lastBk=0;
+var srcs=[],sm='main',cf=0,cc=0,gc=0,conf=false,wk=null,msel=false,mset={},VER='2.2',svis=8,lastBk=0;
 function backOnce(){var n=Date.now();if(n-lastBk<150)return;lastBk=n;back()}
 var CATS=['المصادر','القنوات','العرض','التشغيل','نسخ احتياطي','حول'];
 function savePrefs(){store('prefs',JSON.stringify(P))}
@@ -420,7 +420,7 @@ function rowHTML(t,sel){
   var s=t;
   if(m=/^(\d+)\. (.*)$/.exec(s)){no=m[1];s=m[2]}
   if(m=/^(⇅|🚫|☑|☐)\s+(.*)$/.exec(s)){ic=m[1];s=m[2];if(ic==='🚫')cls+=' hid';if(ic==='☑')cls+=' mk'}
-  else if(m=/^(✔|⛔|👁|➕|↺|📤|📥|▲|▼|✏|🗂|🗑|↩|⚠|🌐|📡|📺|🖥|▶|💾|ℹ|🔁)\s*(.*)$/.exec(s)){ic=m[1];s=m[2]}
+  else if(m=/^(✔|⛔|👁|➕|↺|📤|📥|▲|▼|✏|🗂|🗑|↩|⚠|🌐|📡|📺|🖥|▶|💾|ℹ|🔁|✖|⚙)\s*(.*)$/.exec(s)){ic=m[1];s=m[2]}
   if(ic==='🗑'||ic==='⚠')cls+=' dng';
   if(ic==='⚠')cls+=' cnf';
   if(sm==='main'&&(cat>=1&&cat<=3)&&(m=/^(.+?): (.+)$/.exec(s))){lb=m[1];vl=m[2]}
@@ -478,6 +478,7 @@ function askText(t,v,cb){
   kbcb=cb;kbsys=false;kbr=0;kbc=0;mode='text';$('kbT').textContent=t;
   var i=$('kbIn');i.value=v||'';$('kb').classList.remove('hide');drawKb();
   var h0=vh();i.readOnly=false;try{i.focus()}catch(e){}
+  if(window.Android&&Android.hasIme&&Android.hasIme()){kbsys=true;i.placeholder='اكتب ثم OK · BACK = لوحة مدمجة';drawKb();return}
   setTimeout(function(){if(mode!=='text')return;if(vh()<h0-80)kbsys=true;else{i.readOnly=true;i.blur()}drawKb()},700);
 }
 function endText(ok){

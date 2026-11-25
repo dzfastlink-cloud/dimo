@@ -44,6 +44,7 @@ public class MainActivity extends Activity {
     private String aspect = "contain";
     private int vw = 0, vh = 0;
     private float par = 1f;
+    private long lastBack = 0;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -225,6 +226,17 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public boolean hasIme() {
+            try {
+                android.view.inputmethod.InputMethodManager m = (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                java.util.List<android.view.inputmethod.InputMethodInfo> l = m.getEnabledInputMethodList();
+                return l != null && !l.isEmpty();
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        @JavascriptInterface
         public void openUrl(String u) {
             if (u == null || !(u.startsWith("http://") || u.startsWith("https://"))) return;
             try {
@@ -252,7 +264,15 @@ public class MainActivity extends Activity {
         w.evaluateJavascript("window.onBack?window.onBack():false", new ValueCallback<String>() {
             @Override
             public void onReceiveValue(String r) {
-                if (!"true".equals(r)) finish();
+                if (!"true".equals(r)) {
+                    long n = System.currentTimeMillis();
+                    if (n - lastBack < 2500) {
+                        finish();
+                    } else {
+                        lastBack = n;
+                        js("window.wToast&&wToast('اضغط رجوع مرة أخرى للخروج')");
+                    }
+                }
             }
         });
     }
